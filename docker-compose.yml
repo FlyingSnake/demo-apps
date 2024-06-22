@@ -1,0 +1,59 @@
+version: '3.8'
+services:
+  mysql:
+    build: ./infrastructure/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test
+    ports:
+      - "3306:3306"
+
+  java-sb-app:
+    build: ./java
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/test
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      # SPRING_SQL_INIT_MODE: always
+      # SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: true
+
+  nodejs-express-app:
+    build: ./nodejs
+    ports:
+      - "8081:3000"
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_DATABASE: test
+
+  php-flight-app:
+    build: ./php
+    ports:
+      - "8082:80"
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      DB_DATABASE: test
+
+  go-echo:
+    build: ./golang
+    ports:
+      - "8083:80"
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      DB_DATABASE: test
