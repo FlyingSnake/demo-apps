@@ -6,7 +6,7 @@ Flight::route('/', function(){
 });
 
 Flight::route('/users', function(){
-    $conn = new mysqli(getenv('DB_HOST'), getenv('DB_USER'), getenv('DB_PASS'), getenv('DB_NAME'));
+    $conn = new mysqli(getenv('DB_HOST'), getenv('DB_USERNAME'), getenv('DB_PASSWORD'), getenv('DB_DATABASE'));
 
     if ($conn->connect_error) {
         Flight::halt(500, 'Database connection error');

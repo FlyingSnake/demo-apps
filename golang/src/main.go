@@ -15,8 +15,9 @@ import (
 )
 
 type User struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+    ID    int    `json:"id"`
+    Name  string `json:"name"`
+    Email string `json:"email"`
 }
 
 func main() {
@@ -44,7 +45,7 @@ func getUsers(c echo.Context) error {
 	}
 	defer db.Close()
 
-	rows, err := db.Query("SELECT id, name FROM user")
+	rows, err := db.Query("SELECT id, name, email FROM user")
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Query execution error"})
 	}
@@ -53,7 +54,7 @@ func getUsers(c echo.Context) error {
 	users := []User{}
 	for rows.Next() {
 		var user User
-		if err := rows.Scan(&user.ID, &user.Name); err != nil {
+		if err := rows.Scan(&user.ID, &user.Name, &user.Email); err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Row scanning error"})
 		}
 		users = append(users, user)
