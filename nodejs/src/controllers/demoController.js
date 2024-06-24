@@ -9,6 +9,7 @@ const users = async (req, res) => {
         const users = await getUsers();
         res.json(users);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Database error' });
     }
 };
