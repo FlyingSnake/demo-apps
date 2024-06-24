@@ -30,7 +30,7 @@ services:
       - mysql
     environment:
       DB_HOST: mysql
-      DB_USER: root
+      DB_USERNAME: root
       DB_PASSWORD: root
       DB_DATABASE: test
 
