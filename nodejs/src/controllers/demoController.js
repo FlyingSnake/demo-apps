@@ -42,8 +42,13 @@ const randomStatus = (req, res) => {
 
 const exception = (req, res) => {
     const currentTime = new Date().toISOString();
-    console.error(`exception called at ${currentTime}`);
-    res.status(500).send(`exception called at ${currentTime}`);
+    const errorMessage = "Internal Server Error - Manual Exception";
+    console.error(errorMessage);
+    res.status(500).json({
+        timestamp: currentTime,
+        status: 500,
+        error: errorMessage
+    })
 };
 
 module.exports = { hello, users, sleep, randomStatus, exception };

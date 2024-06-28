@@ -100,7 +100,7 @@ func randomStatus(c echo.Context) error {
 
 func exceptionHandler(c echo.Context) error {
 	currentTime := time.Now().Format("2006-01-02 15:04:05")
-	errMessage := "exception called at " + currentTime
-	log.Printf("[ERROR] %s", errMessage)
-	panic(errMessage)
+	errMessage := "Internal Server Error - Manual Exception"
+	log.Printf(errMessage)
+	return c.JSON(http.StatusInternalServerError, map[string]string{"timestamp": currentTime, "status": "500", "error": errMessage})
 }

@@ -50,8 +50,13 @@ Flight::route('/status/random', function(){
 
 Flight::route('/exception', function(){
     $currentTime = date('Y-m-d H:i:s');
-    error_log("exception called at ${currentTime}");
-    Flight::halt(500, "exception called at ${currentTime}");
+    $errorMessage = "Internal Server Error - Manual Exception";
+    error_log($errorMessage);
+    Flight::halt(500, json_encode(array(
+        'timestamp' => $currentTime,
+        'status' => '500',
+        'error' => $errorMessage
+    )));
 });
 
 Flight::start();

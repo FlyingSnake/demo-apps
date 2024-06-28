@@ -7,13 +7,19 @@ services:
       MYSQL_DATABASE: test
     ports:
       - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   java-sb-app:
     build: ./java
     ports:
       - "8080:8080"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/test
       SPRING_DATASOURCE_USERNAME: root
@@ -27,7 +33,8 @@ services:
     ports:
       - "8081:3000"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     environment:
       DB_HOST: mysql
       DB_USERNAME: root
@@ -39,7 +46,8 @@ services:
     ports:
       - "8082:80"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     environment:
       DB_HOST: mysql
       DB_USERNAME: root
@@ -51,9 +59,57 @@ services:
     ports:
       - "8083:80"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     environment:
       DB_HOST: mysql
       DB_USERNAME: root
       DB_PASSWORD: root
       DB_DATABASE: test
+
+  python-flask:
+    build: ./python
+    ports:
+      - "8084:5000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      DB_DATABASE: test
+
+  dotnet-carter:
+    build: ./dotnet
+    ports:
+      - "8085:8085"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      DB_DATABASE: test
+
+  react-nginx:
+    build:
+      context: ./react
+      dockerfile: Dockerfile_nginx
+    ports:
+      - "8000:80"
+    depends_on:
+      - java-sb-app
+      - nodejs-express-app
+      - php-flight-app
+      - go-echo
+      - python-flask
+      - dotnet-carter
+    environment:
+      - JAVA_SERVICE=java-sb-app:8080
+      - GOLANG_SERVICE=go-echo:80
+      - NODEJS_SERVICE=nodejs-express-app:3000
+      - PYTHON_SERVICE=python-flask:5000
+      - DOTNET_SERVICE=dotnet-carter:8085
+      - PHP_SERVICE=php-flight-app:80
