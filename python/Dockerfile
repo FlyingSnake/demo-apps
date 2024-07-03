@@ -12,5 +12,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 5000
 
-# Flask 애플리케이션을 실행합니다.
-CMD ["python", "app.py"]
+ENTRYPOINT ["flask", "run", "-d", "5000"]
