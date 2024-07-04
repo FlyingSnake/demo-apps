@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 5000
 
-ENTRYPOINT ["flask", "run", "-d", "5000"]
+ENTRYPOINT ["flask", "run"]
