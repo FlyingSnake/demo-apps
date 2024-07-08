@@ -64,7 +64,6 @@ def get_users():
         return jsonify({"error": str(e)}), 400
     finally:
         cursor.close()
-        connection.close()
 
 @app.route('/exception')
 def exception():
