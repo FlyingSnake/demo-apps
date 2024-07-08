@@ -1,15 +1,29 @@
-from flask import Flask, jsonify
+import os
 import random
 import time
 import datetime
-from db import mysql, init_db
-from config import Config
+from flask import Flask, jsonify
+from mysql.connector import Error
+import mysql.connector
 
 app = Flask(__name__)
-app.config.from_object(Config)
 
-# Initialize MySQL
-init_db(app)
+def create_connection():
+    connection = None
+    try:
+        connection = mysql.connector.connect(
+            host=os.getenv('DB_HOST'),
+            user=os.getenv('DB_USERNAME'),
+            password=os.getenv('DB_PASSWORD'),
+            database=os.getenv('DB_DATABASE')
+        )
+        if connection.is_connected():
+            print("Connected to MySQL database")
+    except Error as e:
+        print(f"Error: '{e}'")
+    return connection
+
+connection = create_connection();
 
 @app.route('/')
 def hello_world():
@@ -41,18 +55,16 @@ def sleep(seconds):
 
 @app.route('/users')
 def get_users():
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM user")
-    rows = cur.fetchall()
-    cur.close()
-    users = []
-    for row in rows:
-        users.append({
-            'id': row[0],
-            'username': row[1],
-            'email': row[2]
-        })
-    return jsonify(users)
+    cursor = connection.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM user")
+        results = cursor.fetchall()
+        return jsonify(results), 200
+    except Error as e:
+        return jsonify({"error": str(e)}), 400
+    finally:
+        cursor.close()
+        connection.close()
 
 @app.route('/exception')
 def exception():
