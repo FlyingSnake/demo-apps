@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"math/rand"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 )
 
 type User struct {
@@ -31,7 +31,7 @@ func main() {
 	e.GET("/status/random", randomStatus)
 	e.GET("/exception", exceptionHandler)
 
-	e.Start(":80")
+	e.Logger.Fatal(e.Start(":80"))
 }
 
 func hello(c echo.Context) error {
@@ -39,27 +39,36 @@ func hello(c echo.Context) error {
 }
 
 func getUsers(c echo.Context) error {
-	db, err := sql.Open("mysql", os.Getenv("DB_USERNAME")+":"+os.Getenv("DB_PASSWORD")+"@tcp("+os.Getenv("DB_HOST")+")/"+os.Getenv("DB_DATABASE"))
+	dbUser := os.Getenv("DB_USERNAME")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbName := os.Getenv("DB_DATABASE")
+	mysqlEndpoint := dbUser + ":" + dbPassword + "@tcp(" + dbHost + ")/" + dbName
+	db, err := otelsql.Open("mysql", mysqlEndpoint)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Database connection error"})
+		log.Fatalf("failed to open database: %v", err)
 	}
 	defer db.Close()
 
-	rows, err := db.Query("SELECT id, name, email FROM user")
+	rows, err := db.QueryContext(c.Request().Context(), "SELECT * FROM user")
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Query execution error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	defer rows.Close()
 
-	users := []User{}
+	var users []map[string]interface{}
 	for rows.Next() {
-		var user User
-		if err := rows.Scan(&user.ID, &user.Name, &user.Email); err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Row scanning error"})
+		var id int
+		var name, email string
+		if err := rows.Scan(&id, &name, &email); err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		users = append(users, user)
+		users = append(users, map[string]interface{}{
+			"id":    id,
+			"name":  name,
+			"email": email,
+		})
 	}
-
 	return c.JSON(http.StatusOK, users)
 }
 

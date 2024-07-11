@@ -1,6 +1,6 @@
 using Carter;
-using Microsoft.AspNetCore.Http;
-using MySql.Data.MySqlClient;
+using Dapper;
+using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,18 +9,23 @@ namespace demoApp.Modules
 {
   public class MainModule : CarterModule
   {
-    private readonly string connectionString;
+    public class User
+    {
+      public int Id { get; set; }
+      public string Name { get; set; }
+      public string Email { get; set; }
+    }
 
     public MainModule()
     {
-      var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-      var dbUsername = Environment.GetEnvironmentVariable("DB_USERNAME");
-      var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
-      var dbName = Environment.GetEnvironmentVariable("DB_DATABASE");
-
-      connectionString = $"Server={dbHost};Database={dbName};User={dbUsername};Password={dbPassword};";
-
       Get("/", async (req, res) => await res.WriteAsync("Hello World (.NET / Carter)"));
+
+      Get("/users", async (req, res) =>
+      {
+        var connection = req.HttpContext.RequestServices.GetService<MySqlConnection>();
+        var users = await connection.QueryAsync<User>("SELECT * FROM user");
+        await res.WriteAsJsonAsync(users);
+      });
 
       Get("/status/random", async (req, res) =>
       {
@@ -39,7 +44,8 @@ namespace demoApp.Modules
                     (502, "Bad Gateway"),
                     (503, "Service Unavailable")
           };
-        var (statusCode, message) = statusList[new Random().Next(statusList.Count)];
+        var random = new Random();
+        var (statusCode, message) = statusList[random.Next(statusList.Count)];
         res.StatusCode = statusCode;
         await res.WriteAsJsonAsync(message);
       });
@@ -56,38 +62,6 @@ namespace demoApp.Modules
           res.StatusCode = 400;
           await res.WriteAsync("Invalid input for seconds.");
         }
-      });
-
-      Get("/users", async (req, res) =>
-      {
-        var users = new List<object>();
-        try
-        {
-          using (var connection = new MySqlConnection(connectionString))
-          {
-            await connection.OpenAsync();
-            using (var command = new MySqlCommand("SELECT * FROM user", connection))
-            using (var reader = await command.ExecuteReaderAsync())
-            {
-              while (await reader.ReadAsync())
-              {
-                users.Add(new
-                {
-                  id = reader["id"],
-                  name = reader["name"],
-                  email = reader["email"]
-                });
-              }
-            }
-          }
-        }
-        catch (Exception ex)
-        {
-          res.StatusCode = 500;
-          await res.WriteAsJsonAsync(new { error = ex.Message });
-          return;
-        }
-        await res.WriteAsJsonAsync(users);
       });
 
       Get("/exception", async (req, res) =>
