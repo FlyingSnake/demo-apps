@@ -71,4 +71,4 @@ curl localhost:8000/dotnet/[PATH]
 | go-echo-app        | [flyingsnake12/demo-golang-echo](https://hub.docker.com/r/flyingsnake12/demo-golang-echo)         | 1.0.3        |
 | python-flask-app   | [flyingsnake12/demo-python-flask](https://hub.docker.com/r/flyingsnake12/demo-python-flask)       | 1.0.3        |
 | dotnet-carter-app  | [flyingsnake12/demo-dotnet-carter](https://hub.docker.com/r/flyingsnake12/demo-dotnet-carter)     | 1.0.2        |
-| react-app          | [flyingsnake12/demo-react](https://hub.docker.com/r/flyingsnake12/demo-react)                     | nginx-stable |
+| react-app          | [flyingsnake12/demo-react](https://hub.docker.com/r/flyingsnake12/demo-react)                     | nginx-1.23.1 |

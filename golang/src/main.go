@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 )
 
 type User struct {
@@ -44,7 +45,7 @@ func getUsers(c echo.Context) error {
 	dbHost := os.Getenv("DB_HOST")
 	dbName := os.Getenv("DB_DATABASE")
 	mysqlEndpoint := dbUser + ":" + dbPassword + "@tcp(" + dbHost + ")/" + dbName
-	db, err := otelsql.Open("mysql", mysqlEndpoint)
+	db, err := otelsql.Open("mysql", mysqlEndpoint, otelsql.WithAttributes(semconv.DBSystemMySQL), otelsql.WithDBName(dbName))
 	if err != nil {
 		log.Fatalf("failed to open database: %v", err)
 	}
