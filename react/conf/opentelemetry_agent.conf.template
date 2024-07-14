@@ -1,0 +1,8 @@
+NginxModuleEnabled ${NGINX_MODULE_ENABLED};
+NginxModuleOtelExporterEndpoint ${OTEL_EXPORTER_OTLP_ENDPOINT};
+NginxModuleOtelSpanExporter ${OTEL_TRACES_EXPORTER};
+NginxModuleResolveBackends ${NGINX_MODULE_RESOLVE_BACKENDS};
+NginxModuleServiceInstanceId ${OTEL_RESOURCE_ATTRIBUTES_POD_NAME};
+NginxModuleServiceName ${OTEL_SERVICE_NAME};
+NginxModuleServiceNamespace ${NGINX_MODULE_SERVICE_NAMESPACE};
+NginxModuleTraceAsError ${NGINX_MODULE_TRACE_AS_ERROR};

@@ -1,15 +1,32 @@
-worker_processes 1;
+user  nginx;
+worker_processes  auto;
+error_log /var/log/nginx/error.log;
+pid        /var/run/nginx.pid;
+
 
 events {
-    worker_connections 1024;
+    worker_connections  1024;
 }
 
+
 http {
-    include       mime.types;
+    include       /etc/nginx/mime.types;
     default_type  application/octet-stream;
 
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
     sendfile        on;
+    #tcp_nopush     on;
+
     keepalive_timeout  65;
+
+    #gzip  on;
+
+    include /etc/nginx/conf.d/*.conf;
 
     upstream java_service {
         server ${JAVA_SERVICE};
@@ -33,62 +50,5 @@ http {
 
     upstream php_service {
         server ${PHP_SERVICE};
-    }
-
-    server {
-        listen 80;
-
-        location /java/ {
-            proxy_pass http://java_service/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        location /golang/ {
-            proxy_pass http://golang_service/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        location /nodejs/ {
-            proxy_pass http://nodejs_service/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        location /python/ {
-            proxy_pass http://python_service/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        location /dotnet/ {
-            proxy_pass http://dotnet_service/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        location /php/ {
-            proxy_pass http://php_service/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        location / {
-            root   /usr/share/nginx/html;
-            index  index.html index.htm;
-        }
     }
 }
